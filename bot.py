@@ -1,6 +1,8 @@
 import requests
 import misc
-from yobit import get_btc
+from yobit import getFullTrack
+from yobit import getTrack
+from yobit import waitTrack
 from time import sleep
 
 
@@ -42,6 +44,7 @@ def get_message():
     return None
 
 def send_message(chat_id,text='Wait a second, please ...'):
+    print(text)
     url = URL + 'sendmessage?chat_id={}&text={}'.format(chat_id,text)
     requests.get(url)
 
@@ -56,9 +59,32 @@ def main():
 
             chat_id = answer['chat_id']
             text = answer['text']
+            if text == '/help':
+                send_message(chat_id,"Чтобы узнать статус своей посылки введите:\n1) /track tracknumber - данная команда выводит последнее изменение в статусе посылки.\n2) /fulltrack tracknumber - данная команда выводит полный статус посылки.\n")
+            else:
+                text = text.strip()
+                spaceNum = text.count(' ')
 
-            if text == '/btc':
-                send_message(chat_id, get_btc())
+                if spaceNum == 0 or spaceNum > 1:
+                    send_message(chat_id,"Введите команду вместе с трек номером в формате: /command LP00125462391048")
+                else:
+                    text = text.split()
+                    command = text[0]
+                    trackNum = text[1]
+
+                    print("Команда: ",text[0],text[1])
+
+                    if len(trackNum) >= 13:
+                        if command == '/track':
+                            send_message(chat_id, waitTrack(trackNum))
+                            send_message(chat_id, getTrack(trackNum))
+                        elif command == '/fulltrack':
+                            send_message(chat_id, waitTrack(trackNum))
+                            send_message(chat_id, getFullTrack(trackNum))
+                        else:
+                            send_message(chat_id,'Команда введена неправильно!!')
+                    else:
+                        send_message(chat_id, 'Длина трек номера должна быть не меньше 13 символов!')
 
 
         else:
